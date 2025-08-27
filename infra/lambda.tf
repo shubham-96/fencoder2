@@ -1,12 +1,12 @@
 resource "aws_lambda_function" "fencoder_lambda" {
-  function_name = var.lambda_function_name
-  role          = aws_iam_role.lambda_exec.arn
-  handler       = "index.handler"
-  runtime       = "nodejs20.x"
-  filename      = "../lambda/lambda.zip"
+  function_name    = var.lambda_function_name
+  role             = aws_iam_role.lambda_exec.arn
+  handler          = "index.handler"
+  runtime          = "nodejs20.x"
+  filename         = "../lambda/lambda.zip"
   source_code_hash = filebase64sha256("../lambda/lambda.zip")
-  timeout       = 10
-  memory_size   = 128
+  timeout          = 10
+  memory_size      = 128
   environment {
     variables = {
       AWS_NODEJS_CONNECTION_REUSE_ENABLED = "1"

@@ -15,8 +15,8 @@ resource "aws_s3_bucket_notification" "fencoder_notification" {
 
   lambda_function {
     lambda_function_arn = aws_lambda_function.fencoder_lambda.arn
-    events             = ["s3:ObjectCreated:*"]
-    filter_prefix      = "input/"
+    events              = ["s3:ObjectCreated:*"]
+    filter_prefix       = "input/"
   }
 
   depends_on = [
