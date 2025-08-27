@@ -1,0 +1,8 @@
+# Example terraform.tfvars file
+# Copy this file to terraform.tfvars and fill in your actual values
+
+s3_bucket_name = "<your-s3-bucket-name>"
+lambda_function_name = "<your-lambda-function-name>"
+
+aws_region = "<your-aws-region>"
+aws_profile = "<your-aws-profile>"

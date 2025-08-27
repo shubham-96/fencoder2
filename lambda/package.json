@@ -1,0 +1,16 @@
+{
+  "name": "fencoder-lambda",
+  "version": "1.0.0",
+  "description": "Lambda function for video encoding trigger (Node.js, TypeScript)",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "package": "npm run build && cd dist && zip -r ../lambda.zip ."
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.119",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {}
+}

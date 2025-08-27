@@ -1,0 +1,56 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfplan
+terraform.tfvars
+terraform.tfvars.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Node.js / TypeScript (Lambda)
+node_modules/
+dist/
+build/
+*.tsbuildinfo
+*.log
+
+# AWS credentials (never commit!)
+.aws/
+*.pem
+*.key
+credentials
+
+# Docker
+*.tar
+*.img
+docker-compose.override.yml
+.docker/
+
+# Shell script outputs
+*.sh~
+*.bak
+
+# FFmpeg build artifacts (if built locally)
+ffmpeg/
+ffmpeg-*
+*.o
+*.a
+*.so
+*.dylib
+*.exe
+
+# OS / Editor files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+*.code-workspace
+
+# Lambda deployment package
+lambda/lambda.zip
