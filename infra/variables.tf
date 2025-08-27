@@ -16,3 +16,8 @@ variable "aws_profile" {
   description = "AWS CLI profile to use for authentication"
   type        = string
 }
+
+variable "allowed_account_id" {
+  description = "AWS Account ID allowed to access the S3 bucket"
+  type        = string
+}

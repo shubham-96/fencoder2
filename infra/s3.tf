@@ -10,6 +10,32 @@ resource "aws_s3_bucket_public_access_block" "fencoder_data_block" {
   restrict_public_buckets = true
 }
 
+resource "aws_s3_bucket_policy" "fencoder_bucket_policy" {
+  bucket = aws_s3_bucket.fencoder_data.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid = "AllowAdamAccess"
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::${var.allowed_account_id}:root"
+        }
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:PutObjectAcl",
+          "s3:ListBucket"
+        ]
+        Resource = [
+          "${aws_s3_bucket.fencoder_data.arn}/*",
+          aws_s3_bucket.fencoder_data.arn
+        ]
+      }
+    ]
+  }) 
+}
+
 resource "aws_s3_bucket_notification" "fencoder_notification" {
   bucket = aws_s3_bucket.fencoder_data.id
 
