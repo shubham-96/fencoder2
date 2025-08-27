@@ -77,6 +77,3 @@ This document outlines the setup for automating and optimizing video encoding us
 - **Quality**: Test CRF values (e.g., 23 vs. 28) for libx265 to optimize quality vs. file size for VLC playback.
 - **File Size**: Leverage H.265’s compression efficiency. For downscaled videos, ensure 1440p output balances quality and size.
 - **Error Handling**: Add logic in the shell script to handle invalid video files or encoding failures, ensuring robust operation without CloudWatch logging.
-
-## Future Reference
-Attach this document to all future conversations to ensure context for the video encoding setup. Update the document if requirements change (e.g., new codecs, resolution policies, or AWS services).
