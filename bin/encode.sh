@@ -24,22 +24,28 @@ echo "Downloading s3://$S3_BUCKET/$S3_KEY to $INPUT_FILE..."
 s5cmd cp "s3://$S3_BUCKET/$S3_KEY" "$INPUT_FILE"
 
 # Determine encoding parameters based on S3_KEY prefix
-CRF=26
+CRF=23
 SCALE=""
 if echo "$S3_KEY" | grep -q '^input/preserve/'; then
 	# Preserve original resolution
-	SCALE=""
+	SCALE="-vsync vfr"
 elif echo "$S3_KEY" | grep -q '^input/downscale/'; then
 	# Downscale 4K to 1440p
-	SCALE="-vf scale=2560:1440"
+	SCALE="-vf scale=-1:1440 -vsync vfr"
+elif echo "$S3_KEY" | grep -q '^input/flip/'; then
+	# Flip video horizontally
+	SCALE="-vf hflip -vsync vfr"
+elif echo "$S3_KEY" | grep -q '^input/downflip/'; then
+	# Downscale to 1440p and flip horizontally
+	SCALE="-vf scale=-1:1440,hflip -vsync vfr"
 fi
 
 # Run ffmpeg encoding
 echo "Encoding video with ffmpeg..."
 if [ -n "$SCALE" ]; then
-	ffmpeg -y -i "$INPUT_FILE" $SCALE -c:v libx265 -crf $CRF -c:a copy "$OUTPUT_FILE"
+	ffmpeg -hide_banner -y -i "$INPUT_FILE" $SCALE -c:v libx265 -x265-params log-level=warning -crf $CRF -c:a copy "$OUTPUT_FILE"
 else
-	ffmpeg -y -i "$INPUT_FILE" -c:v libx265 -crf $CRF -c:a copy "$OUTPUT_FILE"
+	ffmpeg -hide_banner -y -i "$INPUT_FILE" -c:v libx265 -x265-params log-level=warning -crf $CRF -c:a copy "$OUTPUT_FILE"
 fi
 
 # Upload output file to S3 (same key, but under output/ prefix)
