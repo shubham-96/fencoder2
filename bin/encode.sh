@@ -9,6 +9,7 @@ ffmpeg -codecs | grep -q libx265 || { echo >&2 "ffmpeg is missing libx265 suppor
 # Read environment variables
 S3_BUCKET="${S3_BUCKET}"
 S3_KEY="${S3_KEY}"
+CRF="${CRF:-23}"
 
 if [ -z "$S3_BUCKET" ] || [ -z "$S3_KEY" ]; then
 	echo "S3_BUCKET and S3_KEY environment variables must be set. Aborting."
@@ -24,7 +25,6 @@ echo "Downloading s3://$S3_BUCKET/$S3_KEY to $INPUT_FILE..."
 s5cmd cp "s3://$S3_BUCKET/$S3_KEY" "$INPUT_FILE"
 
 # Determine encoding parameters based on S3_KEY prefix
-CRF=23
 SCALE=""
 if echo "$S3_KEY" | grep -q '^input/preserve/'; then
 	# Preserve original resolution
@@ -48,8 +48,9 @@ else
 	ffmpeg -hide_banner -y -i "$INPUT_FILE" -c:v libx265 -x265-params log-level=warning -crf $CRF -c:a copy "$OUTPUT_FILE"
 fi
 
-# Upload output file to S3 (same key, but under output/ prefix)
-OUTPUT_KEY="output/${S3_KEY#input/}"
+# Upload output file to S3 (under output/ prefix)
+FILENAME=${S3_KEY##*/}
+OUTPUT_KEY="output/${FILENAME}"
 echo "Uploading encoded video to s3://$S3_BUCKET/$OUTPUT_KEY..."
 s5cmd cp "$OUTPUT_FILE" "s3://$S3_BUCKET/$OUTPUT_KEY" --storage-class GLACIER_IR
 
