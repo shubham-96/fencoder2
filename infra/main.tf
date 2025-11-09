@@ -31,7 +31,7 @@ resource "aws_batch_job_queue" "fencoder_queue" {
 resource "aws_batch_job_definition" "fencoder_job" {
   name = "fencoder-job-def"
   type = "container"
-  platform_capabilities = "FARGATE"
+  platform_capabilities = ["FARGATE"]
   container_properties = jsonencode({
     image: var.docker_image_url,
     vcpus: 4,
