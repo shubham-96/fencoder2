@@ -3,13 +3,15 @@ resource "aws_lambda_function" "fencoder_lambda" {
   role             = aws_iam_role.lambda_exec.arn
   handler          = "index.handler"
   runtime          = "nodejs20.x"
-  filename         = "../lambda/lambda.zip"
-  source_code_hash = filebase64sha256("../lambda/lambda.zip")
+  filename         = "${path.module}/../lambda/lambda.zip"
+  source_code_hash = filebase64sha256("${path.module}/../lambda/lambda.zip")
   timeout          = 10
   memory_size      = 128
   environment {
     variables = {
-      AWS_NODEJS_CONNECTION_REUSE_ENABLED = "1"
+      BATCH_JOB_QUEUE        = aws_batch_job_queue.fencoder_queue.name
+      BATCH_JOB_DEFINITION   = aws_batch_job_definition.fencoder_job.name
+      CRF                    = "23"
     }
   }
 }
