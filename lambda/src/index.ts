@@ -13,7 +13,8 @@ export const handler = async (event: S3Event) => {
   }
 
   const bucket = record.s3.bucket.name;
-  const objectKey = record.s3.object.key;
+  // First replace '+' with '%20', then decode the URL encoded object key
+  const objectKey = decodeURIComponent(record.s3.object.key.replace(/\+/g, '%20'));
   const batchService = new BatchService();
   const config = getBatchConfig();
 

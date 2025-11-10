@@ -52,6 +52,6 @@ fi
 FILENAME=${S3_KEY##*/}
 OUTPUT_KEY="output/${FILENAME}"
 echo "Uploading encoded video to s3://$S3_BUCKET/$OUTPUT_KEY..."
-s5cmd cp "$OUTPUT_FILE" "s3://$S3_BUCKET/$OUTPUT_KEY" --storage-class GLACIER_IR
+s5cmd cp  --storage-class GLACIER_IR "$OUTPUT_FILE" "s3://$S3_BUCKET/$OUTPUT_KEY"
 
 echo "Encoding and upload complete."

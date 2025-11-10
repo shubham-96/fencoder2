@@ -14,6 +14,11 @@ resource "aws_lambda_function" "fencoder_lambda" {
       CRF                    = "23"
     }
   }
+  depends_on = [
+    aws_iam_role_policy.lambda_policy,
+    aws_batch_job_queue.fencoder_queue,
+    aws_batch_job_definition.fencoder_job
+  ]
 }
 
 resource "aws_iam_role" "lambda_exec" {

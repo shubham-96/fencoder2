@@ -34,6 +34,7 @@ resource "aws_s3_bucket_policy" "fencoder_bucket_policy" {
       }
     ]
   }) 
+  depends_on = [aws_s3_bucket_public_access_block.fencoder_data_block]
 }
 
 resource "aws_s3_bucket_notification" "fencoder_notification" {

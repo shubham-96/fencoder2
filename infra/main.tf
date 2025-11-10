@@ -26,6 +26,7 @@ resource "aws_batch_job_queue" "fencoder_queue" {
     order                  = 1
     compute_environment    = aws_batch_compute_environment.fencoder_compute.arn
   }
+  depends_on = [aws_batch_compute_environment.fencoder_compute]
 }
 
 resource "aws_batch_job_definition" "fencoder_job" {
@@ -34,16 +35,28 @@ resource "aws_batch_job_definition" "fencoder_job" {
   platform_capabilities = ["FARGATE"]
   container_properties = jsonencode({
     image: var.docker_image_url,
-    vcpus: 4,
-    memory: 8192,
-    command: ["/bin/sh", "/bin/encode.sh"],
-    environment: [
-      { name: "S3_BUCKET", value: "" },
-      { name: "S3_KEY", value: "" }
+    resourceRequirements: [
+      {
+        type: "VCPU",
+        value: "4"
+      },
+      {
+        type: "MEMORY",
+        value: "8192"
+      }
     ],
+    command: ["/bin/sh", "/bin/encode.sh"],
     jobRoleArn: aws_iam_role.batch_task.arn,
-    executionRoleArn: aws_iam_role.ecs_execution.arn
+    executionRoleArn: aws_iam_role.ecs_execution.arn,
+    networkConfiguration: {
+      assignPublicIp: "ENABLED"
+    }
   })
+  depends_on = [
+    aws_iam_role_policy.batch_task_s3,
+    aws_iam_role_policy_attachment.ecs_execution_policy,
+    aws_iam_role_policy_attachment.ecs_execution_ecr_readonly
+  ]
 }
 
 resource "aws_security_group" "batch_fargate" {
