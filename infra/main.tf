@@ -38,11 +38,11 @@ resource "aws_batch_job_definition" "fencoder_job" {
     resourceRequirements: [
       {
         type: "VCPU",
-        value: "4"
+        value: "8"
       },
       {
         type: "MEMORY",
-        value: "8192"
+        value: "16384"
       }
     ],
     command: ["/bin/sh", "/bin/encode.sh"],
