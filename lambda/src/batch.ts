@@ -40,7 +40,8 @@ export class BatchService {
         environment: [
           { name: 'S3_BUCKET', value: bucket },
           { name: 'S3_KEY', value: objectKey },
-          { name: 'CRF', value: config.crf.toString() }
+          { name: 'CRF', value: config.crf.toString() },
+          { name: 'S3_STORAGE_CLASS', value: config.s3StorageClass }
         ]
       }
     });

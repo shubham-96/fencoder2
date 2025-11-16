@@ -10,6 +10,7 @@ ffmpeg -codecs | grep -q libx265 || { echo >&2 "ffmpeg is missing libx265 suppor
 S3_BUCKET="${S3_BUCKET}"
 S3_KEY="${S3_KEY}"
 CRF="${CRF:-23}"
+S3_STORAGE_CLASS="${S3_STORAGE_CLASS:-INTELLIGENT_TIERING}"
 
 if [ -z "$S3_BUCKET" ] || [ -z "$S3_KEY" ]; then
 	echo "S3_BUCKET and S3_KEY environment variables must be set. Aborting."
@@ -52,6 +53,6 @@ fi
 FILENAME=${S3_KEY##*/}
 OUTPUT_KEY="output/${FILENAME}"
 echo "Uploading encoded video to s3://$S3_BUCKET/$OUTPUT_KEY..."
-s5cmd cp  --storage-class GLACIER_IR "$OUTPUT_FILE" "s3://$S3_BUCKET/$OUTPUT_KEY"
+s5cmd cp  --storage-class $S3_STORAGE_CLASS "$OUTPUT_FILE" "s3://$S3_BUCKET/$OUTPUT_KEY"
 
 echo "Encoding and upload complete."
