@@ -1,20 +1,19 @@
-# Stage 1: Build s5cmd from source
-FROM golang:1.22-alpine AS s5cmd-builder
-RUN apk add --no-cache git make && \
-    git clone --depth 1 --branch v2.3.0 https://github.com/peak/s5cmd.git /s5cmd && \
-    cd /s5cmd && \
-    CGO_ENABLED=0 make build
+# Stage 1: s5cmd source
+FROM peakcom/s5cmd:v2.3.0 AS s5cmd-source
 
+# Stage 2: ffmpeg source
+FROM mwader/static-ffmpeg:8.0 AS ffmpeg-source
 
-# Stage 2: Main image
-FROM jrottenberg/ffmpeg:8.0-alpine
+# Stage 3: Final image
+FROM alpine:latest
 
-# Copy s5cmd from build stage
-COPY --from=s5cmd-builder /s5cmd/s5cmd /usr/local/bin/s5cmd
+RUN apk add --no-cache ca-certificates
 
-# Add the encoding shell script
+COPY --from=s5cmd-source /s5cmd /usr/local/bin/s5cmd
+COPY --from=ffmpeg-source /ffmpeg /usr/local/bin/ffmpeg
+COPY --from=ffmpeg-source /ffprobe /usr/local/bin/ffprobe
+
 COPY bin/encode.sh /usr/local/bin/encode.sh
 RUN chmod +x /usr/local/bin/encode.sh
 
-# Set entrypoint
 ENTRYPOINT ["/usr/local/bin/encode.sh"]

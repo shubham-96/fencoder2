@@ -27,6 +27,10 @@ resource "aws_batch_job_definition" "fencoder_job" {
   platform_capabilities = ["FARGATE"]
   container_properties = jsonencode({
     image: var.docker_image_url,
+    runtimePlatform: {
+      operatingSystemFamily: "LINUX",
+      cpuArchitecture: "ARM64"
+    }
     resourceRequirements: [
       {
         type: "VCPU",
