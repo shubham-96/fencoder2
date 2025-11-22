@@ -1,57 +1,52 @@
 #!/bin/sh
 set -e
 
+cleanup() {
+	rm -f /tmp/input.* "$OUTPUT_FILE"
+}
+trap cleanup EXIT
+
 # Check dependencies
 command -v s5cmd >/dev/null 2>&1 || { echo >&2 "s5cmd is not installed. Aborting."; exit 1; }
 command -v ffmpeg >/dev/null 2>&1 || { echo >&2 "ffmpeg is not installed. Aborting."; exit 1; }
-ffmpeg -codecs | grep -q libx265 || { echo >&2 "ffmpeg is missing libx265 support. Aborting."; exit 1; }
-
-# Read environment variables
-S3_BUCKET="${S3_BUCKET}"
-S3_KEY="${S3_KEY}"
-CRF="${CRF:-23}"
-S3_STORAGE_CLASS="${S3_STORAGE_CLASS:-INTELLIGENT_TIERING}"
+if ! ffmpeg -codecs 2>/dev/null | grep -q libx265; then
+    echo >&2 "ffmpeg is missing libx265 support. Aborting."
+    exit 1
+fi
 
 if [ -z "$S3_BUCKET" ] || [ -z "$S3_KEY" ]; then
 	echo "S3_BUCKET and S3_KEY environment variables must be set. Aborting."
 	exit 1
 fi
 
-# Local file paths
-INPUT_FILE="/tmp/input.mp4"
+CRF="${CRF:-23}"
+S3_STORAGE_CLASS="${S3_STORAGE_CLASS:-INTELLIGENT_TIERING}"
+INPUT_EXT="${S3_KEY##*.}"
+INPUT_FILE="/tmp/input.${INPUT_EXT}"
 OUTPUT_FILE="/tmp/output.mp4"
 
-# Download input file from S3
 echo "Downloading s3://$S3_BUCKET/$S3_KEY to $INPUT_FILE..."
 s5cmd cp "s3://$S3_BUCKET/$S3_KEY" "$INPUT_FILE"
 
 # Determine encoding parameters based on S3_KEY prefix
 SCALE=""
-if echo "$S3_KEY" | grep -q '^input/preserve/'; then
-	# Preserve original resolution
-	SCALE="-vsync vfr"
-elif echo "$S3_KEY" | grep -q '^input/downscale/'; then
-	# Downscale 4K to 1440p
-	SCALE="-vf scale=-1:1440 -vsync vfr"
-elif echo "$S3_KEY" | grep -q '^input/flip/'; then
-	# Flip video horizontally
-	SCALE="-vf hflip -vsync vfr"
-elif echo "$S3_KEY" | grep -q '^input/downflip/'; then
-	# Downscale to 1440p and flip horizontally
-	SCALE="-vf scale=-1:1440,hflip -vsync vfr"
-fi
+case "$S3_KEY" in
+	input/preserve/*)		SCALE="-fps_mode vfr" ;;
+	input/downscale/*)	SCALE="-vf scale=-1:1440 -fps_mode vfr" ;;
+	input/flip/*)				SCALE="-vf hflip -fps_mode vfr" ;;
+	input/downflip/*)		SCALE="-vf scale=-1:1440,hflip -fps_mode vfr" ;;
+	*) echo "Unknown S3_KEY prefix. Proceeding without scaling filters." ;;
+esac
 
-# Run ffmpeg encoding
 echo "Encoding video with ffmpeg..."
-if [ -n "$SCALE" ]; then
-	ffmpeg -hide_banner -y -i "$INPUT_FILE" $SCALE -c:v libx265 -x265-params log-level=warning -crf $CRF -c:a copy "$OUTPUT_FILE"
-else
-	ffmpeg -hide_banner -y -i "$INPUT_FILE" -c:v libx265 -x265-params log-level=warning -crf $CRF -c:a copy "$OUTPUT_FILE"
-fi
+ffmpeg -hide_banner -y -i "$INPUT_FILE" $SCALE \
+	-c:v libx265 -x265-params log-level=warning -crf $CRF \
+	-c:a copy "$OUTPUT_FILE"
 
 # Upload output file to S3 (under output/ prefix)
-FILENAME=${S3_KEY##*/}
-OUTPUT_KEY="output/${FILENAME}"
+FULL_FILENAME=${S3_KEY##*/}
+FILENAME_NO_EXT=${FULL_FILENAME%.*}
+OUTPUT_KEY="output/${FILENAME_NO_EXT}.mp4"
 echo "Uploading encoded video to s3://$S3_BUCKET/$OUTPUT_KEY..."
 s5cmd cp  --storage-class $S3_STORAGE_CLASS "$OUTPUT_FILE" "s3://$S3_BUCKET/$OUTPUT_KEY"
 
