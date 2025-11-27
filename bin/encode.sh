@@ -38,8 +38,16 @@ case "$S3_KEY" in
 	*) echo "Unknown S3_KEY prefix. Proceeding without scaling filters." ;;
 esac
 
+TRIM_FLAGS=""
+if [ -n "$START_TIME" ]; then
+	TRIM_FLAGS="$TRIM_FLAGS -ss $START_TIME"
+fi
+if [ -n "$END_TIME" ]; then
+	TRIM_FLAGS="$TRIM_FLAGS -to $END_TIME"
+fi
+
 echo "Encoding video with ffmpeg..."
-ffmpeg -hide_banner -y -i "$INPUT_FILE" $SCALE \
+ffmpeg -hide_banner -y -i "$INPUT_FILE" $TRIM_FLAGS $SCALE \
 	-c:v libx265 -x265-params log-level=warning -crf $CRF \
 	-c:a copy "$OUTPUT_FILE"
 

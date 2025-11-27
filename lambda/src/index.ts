@@ -1,6 +1,9 @@
 import { S3Event } from 'aws-lambda';
+import { S3Client, HeadObjectCommand } from '@aws-sdk/client-s3';
 import { BatchService } from './batch';
 import { getBatchConfig } from './config';
+
+const s3Client = new S3Client({});
 
 export const handler = async (event: S3Event) => {
   const record = event.Records && event.Records[0];
@@ -19,10 +22,33 @@ export const handler = async (event: S3Event) => {
   const config = getBatchConfig();
 
   try {
+    let startTime: string | undefined;
+    let endTime: string | undefined;
+
+    try {
+      const headObject = await s3Client.send(new HeadObjectCommand({
+        Bucket: bucket,
+        Key: objectKey
+      }));
+
+      if (headObject.Metadata) {
+        startTime = headObject.Metadata['starttime']; 
+        endTime = headObject.Metadata['endtime'];
+        
+        if (startTime || endTime) {
+          console.log(`Found trimming metadata - Start: ${startTime}, End: ${endTime}`);
+        }
+      }
+    } catch (s3Error) {
+      console.warn(`Warning: Could not fetch metadata for ${objectKey}. Proceeding with full encode.`, s3Error);
+    }
+
     const jobId = await batchService.submitEncodingJob({
       bucket,
       objectKey,
-      config
+      config,
+      startTime,
+      endTime
     });
 
     console.log('Batch job submitted:', jobId);
@@ -32,7 +58,8 @@ export const handler = async (event: S3Event) => {
         message: 'Batch job submitted',
         jobId,
         bucket,
-        objectKey
+        objectKey,
+        trimming: { startTime, endTime }
       })
     };
   } catch (error) {
