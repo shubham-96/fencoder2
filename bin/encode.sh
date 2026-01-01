@@ -35,13 +35,13 @@ CODEC_FLAGS="-x265-params log-level=warning -crf $CRF"
 
 if echo "$S3_KEY" | grep -q '^input/av1test'; then
 	CODEC="libsvtav1"
-	CODEC_FLAGS="-preset 6 -crf 30 -svtav1-params \"tune=0:scd=1:enable-overlays=1\" -pix_fmt yuv420p10le -vf \"fps=fps=source_fps\" -fps_mode cfr"
+	CODEC_FLAGS="-preset 6 -crf 30 -svtav1-params tune=0:scd=1:enable-overlays=1 -pix_fmt yuv420p10le -vf fps=fps=source_fps -fps_mode cfr"
 else 
 	case "$S3_KEY" in
-		input/preserve/*)		SCALE="-vf \"fps=fps=source_fps\" -fps_mode cfr" ;;
-		input/downscale/*)	SCALE="-vf \"scale=-1:1440,fps=fps=source_fps\" -fps_mode cfr" ;;
-		input/flip/*)				SCALE="-vf \"hflip,fps=fps=source_fps\" -fps_mode cfr" ;;
-		input/downflip/*)		SCALE="-vf \"scale=-1:1440,hflip,fps=fps=source_fps\" -fps_mode cfr" ;;
+		input/preserve/*)		SCALE="-vf fps=fps=source_fps -fps_mode cfr" ;;
+		input/downscale/*)	SCALE='-vf scale=-1:1440,fps=fps=source_fps -fps_mode cfr' ;;
+		input/flip/*)				SCALE='-vf hflip,fps=fps=source_fps -fps_mode cfr' ;;
+		input/downflip/*)		SCALE='-vf scale=-1:1440,hflip,fps=fps=source_fps -fps_mode cfr' ;;
 		*) echo "Unknown S3_KEY prefix. Proceeding without scaling filters." ;;
 	esac
 fi
