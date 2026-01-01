@@ -75,6 +75,7 @@ Uploading the files to S3 under the input/ prefix triggers a Lambda function whi
    * Upload to `input/downscale` to downscale 4k video to 1440p while encoding
    * Upload to `input/flip` to vertically flip the video while encoding
    * Upload to `input/downflip` to vertically flip the video & downscale it to 1440p while encoding
+   * Upload to `input/av1test` to re-encode in AV1 using SVT-AV1
    * In order to trim the video, add the following metadata while uploading the file to S3
    
    `
@@ -89,4 +90,5 @@ Uploading the files to S3 under the input/ prefix triggers a Lambda function whi
    * Add a Step Function that takes the file & splits it into multiple chunks of some fixed duration (chunking can be done using ffmpeg at keyframes to maintain seamless concat later). 
    * An array of Batch jobs can then be called for each chunk. The smaller chunks are more likely to complete encoding without being interrupted
    * The encoded chunks can then be concatenated into a single output file.
-  
+   * Analyze whether switching to AV1 instead of H265 is more feasible at these file sizes in terms of encoding costs
+   

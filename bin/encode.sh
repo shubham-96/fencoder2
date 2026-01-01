@@ -30,13 +30,21 @@ s5cmd cp "s3://$S3_BUCKET/$S3_KEY" "$INPUT_FILE"
 
 # Determine encoding parameters based on S3_KEY prefix
 SCALE=""
-case "$S3_KEY" in
-	input/preserve/*)		SCALE="-fps_mode vfr" ;;
-	input/downscale/*)	SCALE="-vf scale=-1:1440 -fps_mode vfr" ;;
-	input/flip/*)				SCALE="-vf hflip -fps_mode vfr" ;;
-	input/downflip/*)		SCALE="-vf scale=-1:1440,hflip -fps_mode vfr" ;;
-	*) echo "Unknown S3_KEY prefix. Proceeding without scaling filters." ;;
-esac
+CODEC="libx265"
+CODEC_FLAGS="-x265-params log-level=warning -crf $CRF"
+
+if echo "$S3_KEY" | grep -q '^input/av1test'; then
+	CODEC="libsvtav1"
+	CODEC_FLAGS="-preset 6 -crf 30 -svtav1-params \"tune=0:scd=1:enable-overlays=1\" -pix_fmt yuv420p10le -vf \"fps=fps=source_fps\" -fps_mode cfr"
+else 
+	case "$S3_KEY" in
+		input/preserve/*)		SCALE="-vf \"fps=fps=source_fps\" -fps_mode cfr" ;;
+		input/downscale/*)	SCALE="-vf \"scale=-1:1440,fps=fps=source_fps\" -fps_mode cfr" ;;
+		input/flip/*)				SCALE="-vf \"hflip,fps=fps=source_fps\" -fps_mode cfr" ;;
+		input/downflip/*)		SCALE="-vf \"scale=-1:1440,hflip,fps=fps=source_fps\" -fps_mode cfr" ;;
+		*) echo "Unknown S3_KEY prefix. Proceeding without scaling filters." ;;
+	esac
+fi
 
 TRIM_FLAGS=""
 if [ -n "$START_TIME" ]; then
@@ -47,8 +55,8 @@ if [ -n "$END_TIME" ]; then
 fi
 
 echo "Encoding video with ffmpeg..."
-ffmpeg -hide_banner -y -i "$INPUT_FILE" $TRIM_FLAGS $SCALE \
-	-c:v libx265 -x265-params log-level=warning -crf $CRF \
+ffmpeg -hide_banner -nostdin -y -i "$INPUT_FILE" $TRIM_FLAGS $SCALE \
+	-c:v $CODEC $CODEC_FLAGS \
 	-c:a copy "$OUTPUT_FILE"
 
 # Upload output file to S3 (under output/ prefix)
