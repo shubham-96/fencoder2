@@ -76,6 +76,7 @@ Uploading the files to S3 under the input/ prefix triggers a Lambda function whi
    * Upload to `input/flip` to vertically flip the video while encoding
    * Upload to `input/downflip` to vertically flip the video & downscale it to 1440p while encoding
    * Upload to `input/av1test` to re-encode in AV1 using SVT-AV1
+   * Upload to `input/av1down` to downscale 4k video to 1440p while re-encoding in AV1
    * In order to trim the video, add the following metadata while uploading the file to S3
    
    `
