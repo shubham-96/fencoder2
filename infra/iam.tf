@@ -85,3 +85,52 @@ resource "aws_iam_role_policy_attachment" "ecs_execution_ecr_readonly" {
   role       = aws_iam_role.ecs_execution.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
+
+# IAM role for EC2 Fleet (required for SPOT instances)
+resource "aws_iam_role" "spot_fleet_role" {
+  name = "fencoder-spot-fleet-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "spot_fleet_policy" {
+  role       = aws_iam_role.spot_fleet_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2SpotFleetTaggingRole"
+}
+
+# ECS instance role used by EC2 instances in the Batch compute environment
+resource "aws_iam_role" "ecs_instance_role" {
+  name = "fencoder-ecs-instance-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_instance_role_policy" {
+  role       = aws_iam_role.ecs_instance_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
+}
+
+resource "aws_iam_instance_profile" "ecs_instance_profile" {
+  name = "fencoder-ecs-instance-profile"
+  role = aws_iam_role.ecs_instance_role.name
+}

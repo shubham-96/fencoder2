@@ -10,3 +10,4 @@ lambda_function_name = "<your-lambda-function-name>"
 allowed_account_id   = "0123456789"
 vpc_id               = "vpc-0123abcde"
 batch_subnet_ids     = ["subnet-abc123", "subnet-def456"]
+batch_instance_types = ["c8g.2xlarge"]

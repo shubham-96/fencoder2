@@ -36,3 +36,9 @@ variable "batch_subnet_ids" {
   description = "List of subnet IDs for AWS Batch Fargate compute environment. Should span multiple AZs for HA."
   type        = list(string)
 }
+
+variable "batch_instance_types" {
+  description = "List of EC2 instance types or families for the AWS Batch Compute Environment."
+  type        = list(string)
+  default     = ["c7g", "c6g"]
+}
